@@ -1,6 +1,6 @@
 # R
-.RData/
-.RHistory/
+.RData
+.RHistory
 # Data
 data/
 # Byte-compiled / optimized / DLL files

@@ -1,0 +1,39 @@
+---
+title: "Calculate V/I for NDC and API"
+output: html_notebook
+params:
+  flight_month: "2025-05"  # Default value, can be overridden when rendering
+  parquet_file_path: "ndc_api_2025-05.parquet"
+---
+
+
+```{r, setup, include=FALSE}
+library(tidyverse)
+library(arrow)
+library(knitr)
+library(kableExtra)
+
+df <- read_parquet(
+  parquet_file_path, 
+  col_select = c("FTDA", "AGTN", "AGTN_NAME", "CPVL")
+)
+
+ndc_api <- df |>
+  group_by(AGTN, AGTN_NAME) |>
+  summarise(
+    CPVL = sum(CPVL+1, na.rm = TRUE),
+  ) |>
+  mutate(
+    VI = calc_vi(CPVL),
+    VAT = calc_vi(CPVL) * 0.1,
+    TTL = calc_vi(CPVL) + calc_vi(CPVL) * 0.1
+  )
+```
+
+## V/I for NDC/API Data Summary (`r flight_month`)
+
+```{r echo = FALSE, results = 'asis'}
+kbl(ndc_api, format.args = list(big.mark = ",")) %>%
+  kable_styling(bootstrap_options = c("striped", "hover"))
+```
+

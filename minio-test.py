@@ -1,38 +1,24 @@
-from minio import Minio, S3Error
+# file_uploader.py MinIO Python SDK example
+from minio import Minio
+from minio.error import S3Error
 
 def main():
-    # Initialize the MinIO client
-    
     client = Minio(
-        "10.90.65.61",
-        access_key="hohyunkim",
-        secret_key="CvHacVkcPXfJr0Jh37j8",
+        "10.90.65.61:9000",
+        access_key="X6I698S1TZ4N791O9PK2",
+        secret_key="nSd6SEEMxVrI5IdD06itUMGt+44StxTiz5i7uVpa",
         secure=False,  # Set to True if using HTTPS
-        region=None
     )
 
-    source_file = "/invoice/CCBLNG_CC_SMRY_250529_250602_250604_T08.27.37.csv.gz"
-    bucket_name = "aprs"
+    bucket_name = "datalake"
+    object_name = "vi/agent.csv" 
+    file_path = "./data/agent.csv"
+    client.fget_object(bucket_name, object_name, file_path)
 
-    found = client.bucket_exists(bucket_name)
-    if not found:
-        # client.make_bucket(bucket_name)
-        print("Created bucket:", bucket_name)
-    else:
-        print("Bucket already exists:", bucket_name)
-    
-    client.fget_object(
-        bucket_name,
-        "./data/CCBLNG_CC_SMRY_250529_250602_250604_T08.27.37.csv.gz",
-        source_file,
-    )
-    print(
-        source_file, "downloaded to ./data/CCBLNG_CC_SMRY_250529_250602_250604_T08.27.37.csv.gz"
-    )
+    print(f"File {file_path} downloaded successfully from bucket {bucket_name}.")
 
 if __name__ == "__main__":
     try:
-        main() 
+        main()
     except S3Error as exc:
-        print("An error occurred:", exc)
-
+        print("error occurred.", exc)

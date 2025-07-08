@@ -1,5 +1,7 @@
 import polars as pl
 import cx_Oracle as orcx
+from minio import Minio
+import io
 
 def main():
 	# Initialize Oracle client
@@ -22,15 +24,10 @@ def main():
 	print(df)
 
 def test():
-	df = pl.read_parquet(
-		'./data/edgar_uplift_int_2025-05.parquet',
-		# columns=['Source', 'Original Sales Agent', 'Original Agent Name', 'Doc No', 'Cpn', 'FlightDate' 'Orig', 'Dest', 'PaxNo',
-		#    'Currency', 'DiscountedFare', 'SectorDomInt'],
-		)
-	
-	agent = pl.read_csv(
-		'./data/agent.csv'
-	)
+	bucket_name = "datalake"
+
+	df = read_parquet_from_minio(bucket_name, object_name = "vi/edgar_uplift_int_2025-05.parquet")
+	agent = read_csv_from_minio(bucket_name, object_name = 'vi/agent.csv')
 
 	df1 = df.filter(
 		pl.col('SectorDomInt') == 'INT',
@@ -69,13 +66,37 @@ def test():
 	)
 	print(df2)
 	
-# def test2():
-# 	from google.colab import sheets
-# 	url = "https://docs.google.com/spreadsheets/d/1clBGj8izlmcpnNj5Uoc8t_zk0-30YSKpAsjbr_G0KAw"
-# 	sheet = sheets.InteractiveSheet(url=url, backend="polars", display=False)
-# 	df = sheet.as_df()
-# 	print(df)
 
+def read_parquet_from_minio(bucket_name, object_name):
+	"""
+	Read a Parquet file from MinIO and return a Polars DataFrame.
+	"""
+	client = Minio(
+	"10.90.65.61:9000",
+	access_key="X6I698S1TZ4N791O9PK2",
+	secret_key="nSd6SEEMxVrI5IdD06itUMGt+44StxTiz5i7uVpa",
+	secure=False,  # Set to True if using HTTPS
+)
+	response = client.get_object(bucket_name, object_name)
+
+	# Read the file content into a Polars DataFrame
+	data = io.BytesIO(response.read())
+	df = pl.read_parquet(data)
+	return df
+
+def read_csv_from_minio(bucket_name, object_name):
+	"""
+	Read a Parquet file from MinIO and return a Polars DataFrame.
+	"""
+	client = Minio(
+	"10.90.65.61:9000",
+	access_key="X6I698S1TZ4N791O9PK2",
+	secret_key="nSd6SEEMxVrI5IdD06itUMGt+44StxTiz5i7uVpa",
+	secure=False,  # Set to True if using HTTPS
+)
+	response = client.get_object(bucket_name, object_name)
+	df = pl.read_csv(response)
+	return df
 
 if __name__ == "__main__":
 	test()	
